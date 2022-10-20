@@ -1,6 +1,7 @@
 package exercise.dao;
 
 import exercise.domain.User;
+import org.springframework.dao.EmptyResultDataAccessException;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -40,11 +41,21 @@ public class UserDao {
             PreparedStatement ps = conn.prepareStatement ("SELECT * FROM users WHERE id = ?");
             ps.setString(1, id);
             ResultSet rs = ps.executeQuery();
-            rs.next();
-            User user = new User(rs.getString("id"), rs.getString("name"), rs.getString("password"));
+
+            User user = null;
+            if (rs.next()){
+                user = new User();
+                user.setId(rs.getString("id"));
+                user.setName(rs.getString("name"));
+                user.setPassword(rs.getString("password"));
+            }
+
             rs.close();
             ps.close();
             conn.close();
+
+            if (user == null) throw new EmptyResultDataAccessException(1);
+
             return user;
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
